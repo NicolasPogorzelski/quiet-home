@@ -8,12 +8,16 @@ The look follows [CleanFrame](https://github.com/nthnclrk/CleanFrame) by Nathan 
 screen for Samsung's The Frame TV. CleanFrame is a Tizen web app; this is a separate Android
 implementation of its Dock layout, not a port of its code.
 
-Two styles, switched under *Einstellungen → App-Icons*:
+Two settings, independent of each other: *Einstellungen → App-Icons* chooses the tiles,
+*Einstellungen → Menüleiste* the dock.
 
-| Classic: the apps' own banners | Quiet: white marks and names, as in CleanFrame |
-| --- | --- |
-| ![Classic style: glass dock with banners, the focused app's name above it](docs/screenshots/home.png) | ![Quiet style: white marks and app names in the Quiet dock](docs/screenshots/home-quiet.png) |
-| ![All apps in the Classic style: banners in a five-column grid](docs/screenshots/all-apps.png) | ![All apps in the Quiet style: white marks in a five-column grid](docs/screenshots/all-apps-quiet.png) |
+| | Icons: Classic, the apps' own banners | Icons: Quiet, white marks and names as in CleanFrame |
+| --- | --- | --- |
+| **Dock: Classic** | ![Classic icons on the light glass dock, the focused app's name above it](docs/screenshots/home.png) | ![Quiet icons on the light glass dock](docs/screenshots/home-quiet-icons.png) |
+| **Dock: Quiet** | ![Classic icons on the darker Quiet dock](docs/screenshots/home-quiet-dock.png) | ![Quiet icons on the darker Quiet dock](docs/screenshots/home-quiet.png) |
+| **All apps** | ![All apps in the Classic style: banners in a five-column grid](docs/screenshots/all-apps.png) | ![All apps in the Quiet style: white marks in a five-column grid](docs/screenshots/all-apps-quiet.png) |
+
+![Settings: wallpaper, app icons, dock, wallpaper rotation, Netflix key and accessibility service](docs/screenshots/settings.png)
 
 *Screenshots from the demo build (see [Build](#build)) with placeholder tiles and the built-in
 gradient. On a device, the dock shows the installed apps on your own wallpaper.*
