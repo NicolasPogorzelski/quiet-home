@@ -41,10 +41,23 @@ to keep the rest small.
 
 ## Requirements
 
-- An Android TV device with Android 11 (API 30) or newer. Only the SHIELD TV 2019 has been tested.
-- To build: JDK 17 or 21 and the Android SDK (platform 35, build-tools 35.0.0). Gradle comes with
-  the wrapper.
-- ADB access to the device (USB or network debugging enabled).
+- An Android TV device with Android 11 (API 30) or newer. Only the SHIELD TV Pro 2019 has been
+  tested. The Netflix key remap expects the SHIELD remote that came with the 2019 models.
+- The interface is in German.
+- ADB on a computer, and network debugging enabled on the device (*Device Preferences →
+  Developer options*; the developer options appear after pressing OK seven times on *Device
+  Preferences → About → Build*).
+- To build it yourself: JDK 17 or 21 and the Android SDK (platform 35, build-tools 35.0.0).
+  Gradle comes with the wrapper.
+
+## Download
+
+Signed APKs are attached to the [releases](https://github.com/NicolasPogorzelski/quiet-home/releases).
+Each release lists the SHA-256 of its APK; compare it before installing:
+
+```bash
+sha256sum quiet-home-<version>.apk
+```
 
 ## Build
 
@@ -53,14 +66,15 @@ echo "sdk.dir=$HOME/Android/Sdk" > local.properties
 ./gradlew lintRelease assembleRelease
 ```
 
-The APK is written to `app/build/outputs/apk/release/app-release.apk`. Release builds are signed
-with the debug key, because the app is only sideloaded.
+The APK is written to `app/build/outputs/apk/release/app-release.apk`. Without a release key (see
+[Releasing](#releasing)) it is signed with your local debug key, which works for your own device
+but cannot update a downloaded release; uninstall that first.
 
 ## Install and make it the home screen
 
 ```bash
 adb connect <device-ip>:5555
-adb install -r app/build/outputs/apk/release/app-release.apk
+adb install -r quiet-home-<version>.apk   # or app/build/outputs/apk/release/app-release.apk
 
 # Make it the home screen
 adb shell cmd package set-home-activity io.github.nicolaspogorzelski.quiethome/.HomeActivity
@@ -152,6 +166,38 @@ adb shell cmd package set-home-activity com.spocky.projengmenu/.ui.home.MainActi
 adb shell settings delete secure enabled_accessibility_services
 adb uninstall io.github.nicolaspogorzelski.quiethome
 ```
+
+## Releasing
+
+Release APKs are signed locally with a key that never enters the repository or GitHub. Gradle
+reads it from `~/.gradle/gradle.properties`:
+
+```properties
+quietHome.storeFile=/home/<user>/.config/quiet-home/release.jks
+quietHome.storePassword=<password>
+quietHome.keyAlias=quiet-home
+quietHome.keyPassword=<password>
+```
+
+1. Raise `versionCode` and `versionName` in `app/build.gradle.kts` and commit.
+2. Build and check the signature:
+
+   ```bash
+   ./gradlew lintRelease assembleRelease
+   apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk
+   cp app/build/outputs/apk/release/app-release.apk quiet-home-<version>.apk
+   sha256sum quiet-home-<version>.apk
+   ```
+
+3. Publish with the checksum in the notes:
+
+   ```bash
+   gh release create v<version> quiet-home-<version>.apk --title "Quiet Home <version>" \
+     --notes "SHA-256: <checksum>"
+   ```
+
+Keep a backup of the key file and its passwords outside this computer. Without them, no update
+can be installed over an existing Quiet Home; it has to be uninstalled first.
 
 ## Ideas
 
