@@ -1,0 +1,42 @@
+name: Build
+
+# Builds and lints every push and pull request. Release APKs are signed and published
+# locally (see README, "Releasing"), so no signing key is stored on GitHub; this build
+# falls back to the debug key.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        # Pinned to a commit SHA because tags can be repointed; the trailing comment names
+        # the version, and Dependabot updates both together.
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate Gradle wrapper
+        # Fails if gradle-wrapper.jar is not an official Gradle release.
+        uses: gradle/actions/wrapper-validation@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Lint and build
+        run: ./gradlew lintRelease assembleRelease
+
+      - name: Shell scripts (shellcheck)
+        run: shellcheck tools/*.sh
