@@ -8,12 +8,16 @@ The look follows [CleanFrame](https://github.com/nthnclrk/CleanFrame) by Nathan 
 screen for Samsung's The Frame TV. CleanFrame is a Tizen web app; this is a separate Android
 implementation of its Dock layout, not a port of its code.
 
-Two styles, switched under *Einstellungen → App-Icons*:
+Two settings, independent of each other: *Einstellungen → App-Icons* chooses the tiles,
+*Einstellungen → Menüleiste* the dock.
 
-| Classic: the apps' own banners | Quiet: white marks and names, as in CleanFrame |
-| --- | --- |
-| ![Classic style: glass dock with banners, the focused app's name above it](docs/screenshots/home.png) | ![Quiet style: dark glass dock with white marks and app names](docs/screenshots/home-quiet.png) |
-| ![All apps in the Classic style: banners in a five-column grid](docs/screenshots/all-apps.png) | ![All apps in the Quiet style: white marks in a five-column grid](docs/screenshots/all-apps-quiet.png) |
+| | Icons: Classic, the apps' own banners | Icons: Quiet, white marks and names as in CleanFrame |
+| --- | --- | --- |
+| **Dock: Classic** | ![Classic icons on the light glass dock, the focused app's name above it](docs/screenshots/home.png) | ![Quiet icons on the light glass dock](docs/screenshots/home-quiet-icons.png) |
+| **Dock: Quiet** | ![Classic icons on the darker Quiet dock](docs/screenshots/home-quiet-dock.png) | ![Quiet icons on the darker Quiet dock](docs/screenshots/home-quiet.png) |
+| **All apps** | ![All apps in the Classic style: banners in a five-column grid](docs/screenshots/all-apps.png) | ![All apps in the Quiet style: white marks in a five-column grid](docs/screenshots/all-apps-quiet.png) |
+
+![Settings: wallpaper, app icons, dock, wallpaper rotation, Netflix key and accessibility service](docs/screenshots/settings.png)
 
 *Screenshots from the demo build (see [Build](#build)) with placeholder tiles and the built-in
 gradient. On a device, the dock shows the installed apps on your own wallpaper.*
@@ -25,11 +29,12 @@ gradient. On a device, the dock shows the installed apps on your own wallpaper.*
 - **All apps:** every launchable app in a five-column grid. OK opens an app; a long press on OK
   adds it to Home or removes it. (The SHIELD keeps the remote's ☰ key for its own menu, so it
   cannot be used here.)
-- **Two styles:** *Classic* shows each app's banner. *Quiet* shows a white mark with the app name
-  on a dark glass dock, like CleanFrame; see [App marks](#app-marks-quiet-style).
+- **Two styles:** *Classic* shows each app's banner. *Quiet* shows a white mark with the app name,
+  like CleanFrame; see [App marks](#app-marks-quiet-style).
 - **Quiet dock:** *Einstellungen → Menüleiste → Quiet* gives the dock CleanFrame's "Soft"
   material, lighter and less blurred here: the photo shows through, darkened per photo so that
-  white names stay readable.
+  white names stay readable. *Classic* keeps the light glass. The dock style is independent of the
+  app style.
 - **Settings:** app style, dock style, wallpaper (your own photos or a built-in gradient), optional rotation
   on each return to Home, and the app the remote's Netflix key starts.
 - **Netflix key remap:** an accessibility service catches the SHIELD remote's Netflix key

@@ -231,11 +231,8 @@ class HomeActivity : Activity() {
     }
 
     private fun applyDockStyle() {
-        dock.material = when {
-            prefs.dockStyle == DockStyle.QUIET -> GlassFrame.Material.SOFT
-            prefs.iconStyle == IconStyle.QUIET -> GlassFrame.Material.DARK
-            else -> GlassFrame.Material.LIGHT
-        }
+        // The dock follows its own setting only; the icon style does not change it.
+        dock.material = if (prefs.dockStyle == DockStyle.QUIET) GlassFrame.Material.SOFT else GlassFrame.Material.LIGHT
     }
 
     private fun updateClock() {
