@@ -1,19 +1,22 @@
 # Quiet Home
 
 A small, ad-free home screen for the NVIDIA SHIELD TV (2019, Android 11). It replaces the stock
-launcher with a clock, a glass dock of app banners and nothing else: no recommendations, no
-channels, no network access.
+launcher with a clock, a glass dock of apps and nothing else: no recommendations, no channels, no
+network access.
 
 The look follows [CleanFrame](https://github.com/nthnclrk/CleanFrame) by Nathan Clark, a home
 screen for Samsung's The Frame TV. CleanFrame is a Tizen web app; this is a separate Android
 implementation of its Dock layout, not a port of its code.
 
-![Home: clock, controls and the glass dock, with the focused app's name above it](docs/screenshots/home.png)
+Two styles, switched under *Einstellungen → App-Icons*:
 
-![All apps: five-column grid, dots mark the apps on Home](docs/screenshots/all-apps.png)
+| Classic: the apps' own banners | Quiet: white marks and names, as in CleanFrame |
+| --- | --- |
+| ![Classic style: glass dock with banners, the focused app's name above it](docs/screenshots/home.png) | ![Quiet style: dark glass dock with white marks and app names](docs/screenshots/home-quiet.png) |
+| ![All apps in the Classic style: banners in a five-column grid](docs/screenshots/all-apps.png) | ![All apps in the Quiet style: white marks in a five-column grid](docs/screenshots/all-apps-quiet.png) |
 
 *Screenshots from the demo build (see [Build](#build)) with placeholder tiles and the built-in
-gradient. On a device, the dock shows the banners of the installed apps on your own wallpaper.*
+gradient. On a device, the dock shows the installed apps on your own wallpaper.*
 
 ## Features
 
@@ -22,8 +25,10 @@ gradient. On a device, the dock shows the banners of the installed apps on your 
 - **All apps:** every launchable app in a five-column grid. OK opens an app; a long press on OK
   adds it to Home or removes it. (The SHIELD keeps the remote's ☰ key for its own menu, so it
   cannot be used here.)
-- **Settings:** wallpaper (your own photos or a built-in gradient), optional rotation on each
-  return to Home, and the app the remote's Netflix key starts.
+- **Two styles:** *Classic* shows each app's banner. *Quiet* shows a white mark with the app name
+  on a dark glass dock, like CleanFrame; see [App marks](#app-marks-quiet-style).
+- **Settings:** app style, wallpaper (your own photos or a built-in gradient), optional rotation
+  on each return to Home, and the app the remote's Netflix key starts.
 - **Netflix key remap:** an accessibility service catches the SHIELD remote's Netflix key
   (`BUTTON_12` in `Vendor_0955_Product_7217.kl`) and starts the chosen app instead.
 - **Readable text on any photo:** Quiet Home measures the blurred photo behind the clock, the
@@ -169,6 +174,60 @@ tools/install-wallpapers.sh rr2EF3J5F2Y=Forest_mist M6XC789HLe8=Mountain_valley 
   rQqWOHZ96OM=Blue_peaks pbp_Ww2cewA=Bridge_at_dusk tmtkhWbgMu8=Golden_hour
 ```
 
+## App marks (Quiet style)
+
+Quiet Home ships without logos. For each app it uses the first of these that exists:
+
+1. a mark you installed (below),
+2. the app's own monochrome icon, which some apps include for Android 13 themed icons
+   (for example Jellyfin, Moonlight, Tailscale),
+3. a mark derived from the app icon: the background is removed and the rest turned white,
+4. the app icon itself, in colour.
+
+Marks live in Quiet Home's folder on the device, one file per app, named after the package:
+
+```
+/sdcard/Android/data/io.github.nicolaspogorzelski.quiethome/files/icons/<package>.svg
+/sdcard/Android/data/io.github.nicolaspogorzelski.quiethome/files/icons/<package>.png
+```
+
+An SVG is drawn white from its paths (single-colour marks such as Simple Icons). A PNG keeps its
+shape and is turned white, so use a mark on a transparent background. If both exist, the SVG wins.
+Quiet Home picks up changes the next time Home is shown.
+
+### With the script
+
+[`tools/install-icons.sh`](tools/install-icons.sh) needs `adb` and `curl`. Without arguments it
+downloads marks from [Simple Icons](https://simpleicons.org) (version 16.34.0) for every app in
+[`tools/icons.tsv`](tools/icons.tsv) that is installed on the device:
+
+```bash
+tools/install-icons.sh
+
+# A Simple Icons mark of your choice, or your own file, for one app
+tools/install-icons.sh com.netflix.ninja=netflix
+tools/install-icons.sh de.swr.avp.ard.tv=~/Pictures/ard-mark.svg
+
+# Show and remove installed marks
+tools/install-icons.sh --list
+tools/install-icons.sh --remove com.netflix.ninja
+```
+
+`adb shell pm list packages` lists the package names. Add lines to `tools/icons.tsv` for further
+apps. Some brands are not in Simple Icons (Prime Video, ARD, Joyn, Moonlight); those apps fall
+back to steps 2 to 4.
+
+The Simple Icons drawings are CC0, but the brands remain trademarks of their owners and single
+icons can carry other licences; see the [Simple Icons disclaimer](https://github.com/simple-icons/simple-icons/blob/develop/DISCLAIMER.md).
+The script downloads them for your own device; this repository contains none.
+
+### By hand
+
+```bash
+adb shell mkdir -p /sdcard/Android/data/io.github.nicolaspogorzelski.quiethome/files/icons
+adb push netflix.svg /sdcard/Android/data/io.github.nicolaspogorzelski.quiethome/files/icons/com.netflix.ninja.svg
+```
+
 ## Undo
 
 ```bash
@@ -239,8 +298,9 @@ approval.
 
 - Design: [CleanFrame](https://github.com/nthnclrk/CleanFrame), © 2026 Nathan Clark, MIT License.
   Colours, timings and the dock geometry follow its `style.css`.
-- No photos, logos or fonts are bundled. Wallpapers are added by the user (see
-  [Wallpapers](#wallpapers)); app banners are read from the installed apps at runtime.
+- No photos, logos or fonts are bundled. Wallpapers and app marks are added by the user (see
+  [Wallpapers](#wallpapers) and [App marks](#app-marks-quiet-style)); app banners and icons are
+  read from the installed apps at runtime.
 
 NVIDIA and SHIELD are trademarks of NVIDIA Corporation. This project is not affiliated with or
 endorsed by NVIDIA.
