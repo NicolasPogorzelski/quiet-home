@@ -205,7 +205,9 @@ class TileView(
 
     private fun refresh() {
         if (style == IconStyle.QUIET) {
-            if (isFocused || lifted) plate.colors = FOCUS_PLATE else plate.setColor(restPlate)
+            // Always through colors: setColor() keeps the focus gradient's shader, which then
+            // draws at the rest alpha and leaves a once-focused tile darker than the others.
+            plate.colors = if (isFocused || lifted) FOCUS_PLATE else intArrayOf(restPlate, restPlate)
         }
         when {
             lifted -> animateTo(1.12f, 1f, -context.dp(8f))
