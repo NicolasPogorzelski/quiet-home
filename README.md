@@ -105,8 +105,9 @@ tools/install-wallpapers.sh --list
 tools/install-wallpapers.sh --remove Blue_peaks.jpg
 ```
 
-With more than one device connected, add `-s <serial>` (for example `-s 192.168.0.23:5555`).
-Then choose the photo in Quiet Home under *Einstellungen → Hintergrund* with ◀ ▶.
+If more than one device is connected, select one with `-s <device-ip>:5555`, the address shown by
+`adb devices`. Then choose the photo in Quiet Home under *Einstellungen → Hintergrund* (Settings →
+Wallpaper; the interface is German) with ◀ ▶.
 
 ### By hand
 
