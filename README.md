@@ -27,7 +27,10 @@ gradient. On a device, the dock shows the installed apps on your own wallpaper.*
   cannot be used here.)
 - **Two styles:** *Classic* shows each app's banner. *Quiet* shows a white mark with the app name
   on a dark glass dock, like CleanFrame; see [App marks](#app-marks-quiet-style).
-- **Settings:** app style, wallpaper (your own photos or a built-in gradient), optional rotation
+- **Quiet dock:** *Einstellungen → Menüleiste → Quiet* gives the dock CleanFrame's "Soft"
+  material, lighter and less blurred here: the photo shows through, darkened per photo so that
+  white names stay readable.
+- **Settings:** app style, dock style, wallpaper (your own photos or a built-in gradient), optional rotation
   on each return to Home, and the app the remote's Netflix key starts.
 - **Netflix key remap:** an accessibility service catches the SHIELD remote's Netflix key
   (`BUTTON_12` in `Vendor_0955_Product_7217.kl`) and starts the chosen app instead.
