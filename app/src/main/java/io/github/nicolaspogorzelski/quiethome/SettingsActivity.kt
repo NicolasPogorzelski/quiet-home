@@ -32,6 +32,9 @@ class SettingsActivity : Activity() {
             prefs.wallpaper = Wallpapers.next(this, currentWallpaper(this, prefs), step)
             applyDimmedWallpaper(this, prefs)
         }
+        addChoice(rows, "App-Icons", { if (prefs.iconStyle == IconStyle.QUIET) "Quiet" else "Classic" }) {
+            prefs.iconStyle = if (prefs.iconStyle == IconStyle.QUIET) IconStyle.CLASSIC else IconStyle.QUIET
+        }
         addChoice(rows, "Hintergrund wechseln", { if (prefs.rotateWallpaper) "Bei jeder Rückkehr" else "Nie" }) {
             prefs.rotateWallpaper = !prefs.rotateWallpaper
         }

@@ -14,6 +14,7 @@ import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -21,6 +22,7 @@ import android.view.ViewOutlineProvider
 import android.view.animation.PathInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 
 /** Design tokens taken from CleanFrame's style.css (px values halved for 320 dpi). */
@@ -45,10 +47,17 @@ fun View.animateTo(scale: Float, alpha: Float, translationY: Float = 0f) {
 
 /**
  * Frosted-glass plate: draws the matching region of the pre-blurred panel image,
- * then CleanFrame's white plate gradient and a light top edge.
+ * then CleanFrame's white plate gradient (or a dark tint for the Quiet style) and a light top edge.
  */
 class GlassFrame(context: Context) : FrameLayout(context) {
     var radius = context.dp(24f)
+    var dark = false
+        set(value) {
+            if (field == value) return
+            field = value
+            updateShaders(width, height)
+            invalidate()
+        }
     private val backdrop = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
     private val tint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val edge = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -72,15 +81,21 @@ class GlassFrame(context: Context) : FrameLayout(context) {
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
+        updateShaders(w, h)
+    }
+
+    private fun updateShaders(w: Int, h: Int) {
+        if (w == 0 || h == 0) return
         val h0 = h.toFloat()
-        tint.shader = LinearGradient(
-            0f, 0f, w * .18f, h0,
-            intArrayOf(Color.argb(77, 255, 255, 255), Color.argb(41, 255, 255, 255), Color.argb(56, 255, 255, 255)),
-            floatArrayOf(0f, .58f, 1f), Shader.TileMode.CLAMP,
-        )
+        val stops = if (dark) {
+            intArrayOf(Color.argb(115, 14, 16, 18), Color.argb(92, 14, 16, 18), Color.argb(105, 14, 16, 18))
+        } else {
+            intArrayOf(Color.argb(77, 255, 255, 255), Color.argb(41, 255, 255, 255), Color.argb(56, 255, 255, 255))
+        }
+        tint.shader = LinearGradient(0f, 0f, w * .18f, h0, stops, floatArrayOf(0f, .58f, 1f), Shader.TileMode.CLAMP)
         edge.shader = LinearGradient(
             0f, 0f, 0f, h0 * .35f,
-            Color.argb(87, 255, 255, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP,
+            Color.argb(if (dark) 46 else 87, 255, 255, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP,
         )
     }
 
@@ -100,15 +115,21 @@ class GlassFrame(context: Context) : FrameLayout(context) {
     }
 }
 
-/** An app banner with rounded corners; focus lifts it to full opacity. */
+/**
+ * One app. CLASSIC shows its banner with rounded corners; QUIET follows CleanFrame: a white mark,
+ * optionally the app name below it, and a frosted plate behind the focused app. Focus lifts the
+ * tile to full opacity.
+ */
 @SuppressLint("ViewConstructor")
-class TileView(context: Context, val app: AppEntry) : FrameLayout(context) {
-    private val image = ImageView(context).apply {
-        scaleType = ImageView.ScaleType.FIT_XY
-        setBackgroundColor(0x33000000)
-        outlineProvider = roundedOutline(context.dp(12f))
-        clipToOutline = true
-    }
+class TileView(
+    context: Context,
+    val app: AppEntry,
+    private val style: IconStyle = IconStyle.CLASSIC,
+    showName: Boolean = true,
+) : FrameLayout(context) {
+    private val plate = GradientDrawable().apply { cornerRadius = context.dp(16f) }
+    private val restAlpha = if (style == IconStyle.QUIET) QUIET_REST_ALPHA else Style.TILE_REST_ALPHA
+    private var restPlate = Color.TRANSPARENT
     var lifted = false
         set(value) {
             field = value
@@ -117,10 +138,47 @@ class TileView(context: Context, val app: AppEntry) : FrameLayout(context) {
 
     init {
         isFocusable = true
-        alpha = Style.TILE_REST_ALPHA
-        addView(image, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
-        Apps.loadBanner(context, app) { image.setImageDrawable(it) }
+        alpha = restAlpha
         contentDescription = app.label
+        if (style == IconStyle.CLASSIC) {
+            val image = ImageView(context).apply {
+                scaleType = ImageView.ScaleType.FIT_XY
+                setBackgroundColor(0x33000000)
+                outlineProvider = roundedOutline(context.dp(12f))
+                clipToOutline = true
+            }
+            addView(image, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+            Apps.loadBanner(context, app) { image.setImageDrawable(it) }
+        } else {
+            background = plate
+            val column = LinearLayout(context).apply {
+                orientation = LinearLayout.VERTICAL
+                gravity = Gravity.CENTER
+            }
+            val mark = ImageView(context).apply { scaleType = ImageView.ScaleType.FIT_CENTER }
+            // Wider than tall: wordmarks keep their height instead of shrinking to fit a square.
+            val markHeight = context.dp(if (showName) 34 else 40)
+            column.addView(mark, LinearLayout.LayoutParams(markHeight * 2, markHeight))
+            if (showName) {
+                column.addView(TextView(context).apply {
+                    text = app.label
+                    textSize = 16f
+                    typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+                    setTextColor(Style.INK)
+                    maxLines = 1
+                    ellipsize = TextUtils.TruncateAt.END
+                    gravity = Gravity.CENTER
+                }, LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                    topMargin = context.dp(8)
+                    leftMargin = context.dp(6); rightMargin = context.dp(6)
+                })
+            }
+            addView(column, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+            // Without names (All apps) a faint plate gives the grid its structure.
+            restPlate = if (showName) Color.TRANSPARENT else 0x14FFFFFF
+            plate.setColor(restPlate)
+            Marks.load(context, app) { drawable -> mark.setImageDrawable(drawable) }
+        }
     }
 
     override fun onFocusChanged(gainFocus: Boolean, direction: Int, previouslyFocusedRect: android.graphics.Rect?) {
@@ -128,10 +186,20 @@ class TileView(context: Context, val app: AppEntry) : FrameLayout(context) {
         refresh()
     }
 
-    private fun refresh() = when {
-        lifted -> animateTo(1.12f, 1f, -context.dp(8f))
-        isFocused -> animateTo(Style.TILE_FOCUS_SCALE, 1f)
-        else -> animateTo(1f, Style.TILE_REST_ALPHA)
+    private fun refresh() {
+        if (style == IconStyle.QUIET) plate.setColor(if (isFocused || lifted) FOCUS_PLATE else restPlate)
+        when {
+            lifted -> animateTo(1.12f, 1f, -context.dp(8f))
+            isFocused -> animateTo(if (style == IconStyle.QUIET) QUIET_FOCUS_SCALE else Style.TILE_FOCUS_SCALE, 1f)
+            else -> animateTo(1f, restAlpha)
+        }
+    }
+
+    private companion object {
+        const val QUIET_REST_ALPHA = .8f
+        const val QUIET_FOCUS_SCALE = 1.04f
+        // CleanFrame's "lift" plate: white at about a third, frosted over the dark dock.
+        const val FOCUS_PLATE = 0x38FFFFFF
     }
 }
 

@@ -23,10 +23,12 @@ class AllAppsActivity : Activity() {
     private lateinit var status: TextView
     private val labels = HashMap<String, TextView>()
     private var firstTile: TileView? = null
+    private lateinit var style: IconStyle
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         prefs = Prefs(this)
+        style = prefs.iconStyle
         applyDimmedWallpaper(this, prefs)
 
         val root = FrameLayout(this)
@@ -76,7 +78,7 @@ class AllAppsActivity : Activity() {
         }
         labels[app.packageName] = label
         showLabel(app, onHome)
-        val tile = TileView(this, app).also { if (firstTile == null) firstTile = it }.apply {
+        val tile = TileView(this, app, style, showName = false).also { if (firstTile == null) firstTile = it }.apply {
             isLongClickable = true
             setOnClickListener {
                 if (!Apps.launch(this@AllAppsActivity, app.packageName)) status.text = "${app.label} lässt sich nicht starten"
@@ -86,7 +88,7 @@ class AllAppsActivity : Activity() {
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             clipChildren = false
-            addView(tile, LinearLayout.LayoutParams(dp(136), dp(76)))
+            addView(tile, LinearLayout.LayoutParams(dp(136), dp(if (style == IconStyle.QUIET) 84 else 76)))
             addView(label, LinearLayout.LayoutParams(dp(136), WRAP_CONTENT).apply { topMargin = dp(6) })
             layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
                 rightMargin = dp(14); bottomMargin = dp(18)

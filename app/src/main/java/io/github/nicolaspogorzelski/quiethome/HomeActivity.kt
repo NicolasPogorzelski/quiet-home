@@ -37,6 +37,7 @@ class HomeActivity : Activity() {
     private var appsDirty = true
     /** The saved Home list the dock was last built from; All apps may change it while Home is paused. */
     private var builtFrom: List<String>? = null
+    private var builtStyle: IconStyle? = null
     private var lastTile: TileView? = null
     private var lastControl: TextView? = null
     private var moving: TileView? = null
@@ -87,7 +88,9 @@ class HomeActivity : Activity() {
             addAction(Intent.ACTION_TIMEZONE_CHANGED)
         })
         updateClock()
-        if (appsDirty || builtFrom != prefs.homeApps) reloadApps()
+        // Marks.refresh also notices icons installed with tools/install-icons.sh.
+        val marksChanged = Marks.refresh(this)
+        if (appsDirty || marksChanged || builtFrom != prefs.homeApps || builtStyle != prefs.iconStyle) reloadApps()
         // Settings may have changed the wallpaper while Home was paused.
         applyWallpaper()
     }
@@ -239,11 +242,19 @@ class HomeActivity : Activity() {
         row.removeAllViews()
         lastTile = null
         val home = prefs.homeApps
+        val style = prefs.iconStyle
         builtFrom = home
+        builtStyle = style
+        val quiet = style == IconStyle.QUIET
+        dock.dark = quiet
+        // In the Quiet style each tile carries its name, so the label above the dock is not needed.
+        focusName.visibility = if (quiet) View.GONE else View.VISIBLE
         for (pkg in home) {
             val app = byPackage[pkg] ?: continue
-            row.addView(makeTile(app), LinearLayout.LayoutParams(dp(128), dp(72)).apply {
-                leftMargin = dp(8); rightMargin = dp(8)
+            val size = if (quiet) LinearLayout.LayoutParams(dp(136), dp(100)) else LinearLayout.LayoutParams(dp(128), dp(72))
+            row.addView(makeTile(app, style), size.apply {
+                val gap = if (quiet) 4 else 8
+                leftMargin = dp(gap); rightMargin = dp(gap)
             })
         }
         val target = (0 until row.childCount).map { row.getChildAt(it) as TileView }
@@ -251,7 +262,7 @@ class HomeActivity : Activity() {
         target?.requestFocus() ?: controls.first().requestFocus()
     }
 
-    private fun makeTile(app: AppEntry) = TileView(this, app).apply {
+    private fun makeTile(app: AppEntry, style: IconStyle) = TileView(this, app, style).apply {
         setOnFocusChangeListener { v, focused ->
             if (focused) {
                 lastTile = v as TileView

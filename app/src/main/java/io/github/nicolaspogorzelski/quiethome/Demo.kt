@@ -29,6 +29,22 @@ object Demo {
         AppEntry(info.packageName, name, info, leanback = true)
     }
 
+    /** Simple geometric marks for the Quiet style; deliberately no letters or logos. */
+    fun mark(context: Context, app: AppEntry): Drawable {
+        val bitmap = Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = 0xFFFFFFFF.toInt() }
+        val path = android.graphics.Path()
+        when (apps.indexOf(app) % 5) {
+            0 -> canvas.drawCircle(64f, 64f, 56f, paint)
+            1 -> canvas.drawRoundRect(10f, 10f, 118f, 118f, 26f, 26f, paint)
+            2 -> { path.moveTo(64f, 6f); path.lineTo(122f, 116f); path.lineTo(6f, 116f); path.close(); canvas.drawPath(path, paint) }
+            3 -> { path.moveTo(64f, 4f); path.lineTo(124f, 64f); path.lineTo(64f, 124f); path.lineTo(4f, 64f); path.close(); canvas.drawPath(path, paint) }
+            else -> { paint.style = Paint.Style.STROKE; paint.strokeWidth = 20f; canvas.drawCircle(64f, 64f, 50f, paint) }
+        }
+        return BitmapDrawable(context.resources, bitmap)
+    }
+
     fun banner(context: Context, app: AppEntry): Drawable {
         val color = tiles.first { it.first == app.label }.second.toInt()
         val bitmap = Bitmap.createBitmap(272, 152, Bitmap.Config.ARGB_8888)
