@@ -8,6 +8,13 @@ The look follows [CleanFrame](https://github.com/nthnclrk/CleanFrame) by Nathan 
 screen for Samsung's The Frame TV. CleanFrame is a Tizen web app; this is a separate Android
 implementation of its Dock layout, not a port of its code.
 
+![Home: clock, controls and the glass dock, with the focused app's name above it](docs/screenshots/home.png)
+
+![All apps: five-column grid, dots mark the apps on Home](docs/screenshots/all-apps.png)
+
+*Screenshots from the demo build (see [Build](#build)) with placeholder tiles and the built-in
+gradient. On a device, the dock shows the banners of the installed apps on your own wallpaper.*
+
 ## Features
 
 - **Home:** clock top left, *All apps* and *Settings* top right, a glass dock with the apps on Home.
