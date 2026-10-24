@@ -20,6 +20,7 @@ class AllAppsActivity : Activity() {
     private lateinit var prefs: Prefs
     private lateinit var status: TextView
     private val labels = HashMap<String, TextView>()
+    private var firstTile: TileView? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +60,8 @@ class AllAppsActivity : Activity() {
         }
         root.addView(scroller, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT).apply { topMargin = dp(120) })
         setContentView(root)
+        // Without this, focus starts nowhere and the first key press only enters the grid.
+        firstTile?.requestFocus()
     }
 
     private fun cell(app: AppEntry, onHome: Boolean): LinearLayout {
@@ -71,7 +74,7 @@ class AllAppsActivity : Activity() {
         }
         labels[app.packageName] = label
         showLabel(app, onHome)
-        val tile = TileView(this, app).apply {
+        val tile = TileView(this, app).also { if (firstTile == null) firstTile = it }.apply {
             isLongClickable = true
             setOnClickListener {
                 if (!Apps.launch(this@AllAppsActivity, app.packageName)) status.text = "${app.label} lässt sich nicht starten"
