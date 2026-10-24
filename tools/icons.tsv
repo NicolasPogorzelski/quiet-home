@@ -1,0 +1,20 @@
+# Package name, then the Simple Icons name (https://simpleicons.org) used by install-icons.sh.
+# Apps not listed here, or without a Simple Icons entry, get their own monochrome icon or a
+# mark derived from their icon. Add lines for other apps; `adb shell pm list packages` shows names.
+com.netflix.ninja	netflix
+com.google.android.youtube.tv	youtube
+com.google.android.youtube.tvmusic	youtubemusic
+com.crunchyroll.crunchyroid	crunchyroll
+org.jellyfin.androidtv	jellyfin
+com.tailscale.ipn	tailscale
+com.zdf.android.mediathek	zdf
+de.rtli.tvnow	rtl
+com.retroarch	retroarch
+com.plexapp.android	plex
+org.xbmc.kodi	kodi
+com.spotify.tv.android	spotify
+com.apple.atve.androidtv.appletv	appletv
+tv.twitch.android.app	twitch
+com.valvesoftware.steamlink	steam
+com.dazn	dazn
+com.android.vending	googleplay
