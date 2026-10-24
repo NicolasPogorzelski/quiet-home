@@ -54,7 +54,8 @@ trap 'rm -rf "$work"' EXIT
 if [ ${#sources[@]} -eq 0 ]; then
     installed="$(adb_ shell pm list packages | sed 's/^package://' | tr -d '\r')"
     while IFS=$'\t' read -r app slug; do
-        [ -n "$app" ] && [ "${app:0:1}" != "#" ] || continue
+        # Skip empty lines and comments.
+        if [ -z "$app" ] || [ "${app:0:1}" = "#" ]; then continue; fi
         grep -qx "$app" <<< "$installed" && sources+=("$app=$slug")
     done < "$mapping"
     [ ${#sources[@]} -gt 0 ] || { echo "None of the apps in $mapping is installed."; exit 0; }
