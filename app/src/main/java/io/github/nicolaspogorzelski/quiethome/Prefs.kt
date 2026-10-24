@@ -30,7 +30,9 @@ class Prefs(context: Context) {
 
     /** Package started by the Netflix key, or null to leave the key alone. */
     var netflixTarget: String?
-        get() = sp.getString(KEY_NETFLIX, DEFAULT_NETFLIX_TARGET)?.takeIf { it.isNotEmpty() }
+        // The demo lists only placeholder apps, so its default is one of them rather than a real package.
+        get() = sp.getString(KEY_NETFLIX, if (BuildConfig.DEMO) Demo.apps.first().packageName else DEFAULT_NETFLIX_TARGET)
+            ?.takeIf { it.isNotEmpty() }
         set(value) = sp.edit().putString(KEY_NETFLIX, value.orEmpty()).apply()
 
     var iconStyle: IconStyle
