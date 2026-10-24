@@ -20,8 +20,8 @@ android {
         applicationId = "io.github.nicolaspogorzelski.quiethome"
         minSdk = 30
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.2.0"
+        versionCode = 3
+        versionName = "0.2.1"
         buildConfigField("boolean", "DEMO", demo.toString())
         if (demo) applicationIdSuffix = ".demo"
     }
