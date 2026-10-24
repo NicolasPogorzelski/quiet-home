@@ -8,6 +8,10 @@ plugins {
 // Without them, as on CI or for other builders, release builds fall back to the debug key.
 val releaseStoreFile: String? = providers.gradleProperty("quietHome.storeFile").orNull
 
+// -PquietHome.demo=true builds a separate demo app with placeholder tiles instead of installed
+// apps, for screenshots without third-party logos. It installs next to the real Quiet Home.
+val demo = providers.gradleProperty("quietHome.demo").orNull == "true"
+
 android {
     namespace = "io.github.nicolaspogorzelski.quiethome"
     compileSdk = 35
@@ -18,6 +22,12 @@ android {
         targetSdk = 35
         versionCode = 2
         versionName = "0.2.0"
+        buildConfigField("boolean", "DEMO", demo.toString())
+        if (demo) applicationIdSuffix = ".demo"
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     signingConfigs {

@@ -70,6 +70,11 @@ The APK is written to `app/build/outputs/apk/release/app-release.apk`. Without a
 [Releasing](#releasing)) it is signed with your local debug key, which works for your own device
 but cannot update a downloaded release; uninstall that first.
 
+`./gradlew assembleRelease -PquietHome.demo=true` builds a separate demo app
+(`io.github.nicolaspogorzelski.quiethome.demo`) with placeholder tiles instead of the installed
+apps, for screenshots without third-party logos. Installing it next to Quiet Home resets the
+chosen home screen; set it again after uninstalling the demo.
+
 ## Install and make it the home screen
 
 ```bash

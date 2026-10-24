@@ -40,6 +40,7 @@ object Apps {
     private val banners = LruCache<String, Drawable>(16)
 
     fun installed(context: Context): List<AppEntry> {
+        if (BuildConfig.DEMO) return Demo.apps
         val pm = context.packageManager
         val own = context.packageName
         val byPackage = LinkedHashMap<String, AppEntry>()
@@ -67,6 +68,7 @@ object Apps {
     }
 
     fun launch(context: Context, packageName: String): Boolean {
+        if (BuildConfig.DEMO) return true
         val intent = launchIntent(context, packageName) ?: return false
         return try {
             context.startActivity(intent)
@@ -78,6 +80,7 @@ object Apps {
 
     /** Loads the TV banner (or the icon as fallback) off the main thread. */
     fun loadBanner(context: Context, app: AppEntry, onLoaded: (Drawable) -> Unit) {
+        if (BuildConfig.DEMO) { onLoaded(Demo.banner(context, app)); return }
         banners.get(app.packageName)?.let { onLoaded(it); return }
         val pm = context.applicationContext.packageManager
         val resources = context.applicationContext.resources
