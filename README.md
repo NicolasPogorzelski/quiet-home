@@ -207,6 +207,14 @@ Possible later improvements, not planned yet:
   (for example the granite cliffs in *Mountain valley*) its thin strokes stay hard to read even
   with the halo. A regular weight where the halo is active, or as a setting, would help, at the
   cost of some of the light look.
+- **Focus the last app on return.** Coming back from an app with Home puts the focus on the first
+  dock app and scrolls the dock to the start. Focusing the last launched app instead (as
+  CleanFrame does) would save key presses; Home pressed while already on Home would still jump
+  to the start.
+- **Hide apps in All apps.** System tools (Android settings, Files, Gallery, Input Viewer, Play
+  Store, other launchers) fill the grid. A long press on OK could open a small menu (*Add to /
+  remove from Home*, *Hide*, *Cancel*; in the dock *Move*, *Remove from Home*, *Cancel*), with
+  hidden apps in a dimmed section at the end of All apps.
 
 ## How this repository is built
 
