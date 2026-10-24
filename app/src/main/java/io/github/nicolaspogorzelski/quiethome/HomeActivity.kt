@@ -35,6 +35,8 @@ class HomeActivity : Activity() {
 
     private var installed: List<AppEntry> = emptyList()
     private var appsDirty = true
+    /** The saved Home list the dock was last built from; All apps may change it while Home is paused. */
+    private var builtFrom: List<String>? = null
     private var lastTile: TileView? = null
     private var lastControl: TextView? = null
     private var moving: TileView? = null
@@ -85,7 +87,7 @@ class HomeActivity : Activity() {
             addAction(Intent.ACTION_TIMEZONE_CHANGED)
         })
         updateClock()
-        if (appsDirty) reloadApps()
+        if (appsDirty || builtFrom != prefs.homeApps) reloadApps()
         // Settings may have changed the wallpaper while Home was paused.
         applyWallpaper()
     }
@@ -236,7 +238,9 @@ class HomeActivity : Activity() {
         val focusedPackage = (currentFocus as? TileView)?.app?.packageName ?: lastTile?.app?.packageName
         row.removeAllViews()
         lastTile = null
-        for (pkg in prefs.homeApps) {
+        val home = prefs.homeApps
+        builtFrom = home
+        for (pkg in home) {
             val app = byPackage[pkg] ?: continue
             row.addView(makeTile(app), LinearLayout.LayoutParams(dp(128), dp(72)).apply {
                 leftMargin = dp(8); rightMargin = dp(8)
@@ -310,6 +314,7 @@ class HomeActivity : Activity() {
             val shown = (0 until row.childCount).map { (row.getChildAt(it) as TileView).app.packageName }
             // Keep Home entries of apps that are currently uninstalled or disabled, after the visible ones.
             prefs.homeApps = shown + prefs.homeApps.filter { it !in shown }
+            builtFrom = prefs.homeApps
         }
     }
 }
