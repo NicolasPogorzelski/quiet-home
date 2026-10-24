@@ -51,8 +51,8 @@ fun View.animateTo(scale: Float, alpha: Float, translationY: Float = 0f) {
  */
 class GlassFrame(context: Context) : FrameLayout(context) {
     var radius = context.dp(24f)
-    /** LIGHT and DARK tint the heavily blurred panel; SOFT shows CleanFrame's Soft material as is. */
-    enum class Material { LIGHT, DARK, SOFT }
+    /** LIGHT tints the heavily blurred panel; SOFT shows CleanFrame's Soft material as is. */
+    enum class Material { LIGHT, SOFT }
 
     var material = Material.LIGHT
         set(value) {
@@ -95,7 +95,6 @@ class GlassFrame(context: Context) : FrameLayout(context) {
         if (w == 0 || h == 0) return
         val h0 = h.toFloat()
         val stops = when (material) {
-            Material.DARK -> intArrayOf(Color.argb(115, 14, 16, 18), Color.argb(92, 14, 16, 18), Color.argb(105, 14, 16, 18))
             Material.SOFT -> intArrayOf(Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT)
             Material.LIGHT -> intArrayOf(Color.argb(77, 255, 255, 255), Color.argb(41, 255, 255, 255), Color.argb(56, 255, 255, 255))
         }
@@ -107,7 +106,7 @@ class GlassFrame(context: Context) : FrameLayout(context) {
         } else {
             edge.shader = LinearGradient(
                 0f, 0f, 0f, h0 * .35f,
-                Color.argb(if (material == Material.LIGHT) 87 else 46, 255, 255, 255),
+                Color.argb(87, 255, 255, 255),
                 Color.TRANSPARENT, Shader.TileMode.CLAMP,
             )
         }
