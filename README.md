@@ -67,7 +67,7 @@ to keep the rest small.
 - ADB on a computer, and network debugging enabled on the device (*Device Preferences →
   Developer options*; the developer options appear after pressing OK seven times on *Device
   Preferences → About → Build*).
-- To build it yourself: JDK 17 or 21 and the Android SDK (platform 35, build-tools 35.0.0).
+- To build it yourself: JDK 21 and the Android SDK (platform 35, build-tools 35.0.0).
   Gradle comes with the wrapper.
 
 ## Download
@@ -84,6 +84,15 @@ sha256sum quiet-home-<version>.apk
 ```bash
 echo "sdk.dir=$HOME/Android/Sdk" > local.properties
 ./gradlew lintRelease assembleRelease
+```
+
+Gradle runs on JDK 21 whatever `java` is on the PATH (`gradle/gradle-daemon-jvm.properties`;
+Kotlin 2.1 fails on newer JDKs such as 25.0.4.1). It finds JDKs in the usual places
+(`/usr/lib/jvm`, SDKMAN!, the current `JAVA_HOME`); for one elsewhere, add its path to
+`~/.gradle/gradle.properties`:
+
+```properties
+org.gradle.java.installations.paths=/path/to/jdk-21
 ```
 
 The APK is written to `app/build/outputs/apk/release/app-release.apk`. Without a release key (see
