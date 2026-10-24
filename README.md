@@ -11,9 +11,10 @@ implementation of its Dock layout, not a port of its code.
 ## Features
 
 - **Home:** clock top left, *All apps* and *Settings* top right, a glass dock with the apps on Home.
-  Menu (☰) on a dock app picks it up, ◀ ▶ moves it, OK places it.
-- **All apps:** every launchable app in a five-column grid. OK opens an app; Menu or a long press
-  on OK adds it to Home or removes it.
+  A long press on OK picks a dock app up, ◀ ▶ moves it, OK places it.
+- **All apps:** every launchable app in a five-column grid. OK opens an app; a long press on OK
+  adds it to Home or removes it. (The SHIELD keeps the remote's ☰ key for its own menu, so it
+  cannot be used here.)
 - **Settings:** wallpaper (your own photos or a built-in gradient), optional rotation on each
   return to Home, and the app the remote's Netflix key starts.
 - **Netflix key remap:** an accessibility service catches the SHIELD remote's Netflix key

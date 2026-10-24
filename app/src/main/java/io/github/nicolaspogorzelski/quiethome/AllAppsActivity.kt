@@ -7,7 +7,6 @@ import android.graphics.drawable.LayerDrawable
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.Gravity
-import android.view.KeyEvent
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.FrameLayout
@@ -15,7 +14,10 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 
-/** Every launchable app in a five-column grid. OK opens, Menu or a long press adds to / removes from Home. */
+/**
+ * Every launchable app in a five-column grid. OK opens; a long press on OK adds to or removes
+ * from Home. The SHIELD keeps the remote's Menu key for itself, so it never reaches apps.
+ */
 class AllAppsActivity : Activity() {
     private lateinit var prefs: Prefs
     private lateinit var status: TextView
@@ -34,7 +36,7 @@ class AllAppsActivity : Activity() {
         status = TextView(this).apply {
             textSize = 14f
             setTextColor(Style.MUTE)
-            text = "OK: öffnen   ☰ oder lange OK: auf Home / von Home"
+            text = "OK: öffnen   OK lange drücken: auf Home / von Home"
         }
         root.addView(status, FrameLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply {
             leftMargin = dp(104); topMargin = dp(92)
@@ -80,11 +82,6 @@ class AllAppsActivity : Activity() {
                 if (!Apps.launch(this@AllAppsActivity, app.packageName)) status.text = "${app.label} lässt sich nicht starten"
             }
             setOnLongClickListener { toggleHome(app); true }
-            setOnKeyListener { _, keyCode, event ->
-                if (keyCode == KeyEvent.KEYCODE_MENU && event.action == KeyEvent.ACTION_DOWN) {
-                    toggleHome(app); true
-                } else false
-            }
         }
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL

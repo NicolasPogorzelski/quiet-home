@@ -263,6 +263,16 @@ class HomeActivity : Activity() {
             if (moving == this) endMove(save = true)
             else if (!Apps.launch(this@HomeActivity, app.packageName)) focusName.text = "${app.label} lässt sich nicht starten"
         }
+        // Long press on OK picks the app up; the remote's Menu key never reaches apps on the SHIELD.
+        isLongClickable = true
+        setOnLongClickListener {
+            if (moving == null) {
+                moving = this
+                lifted = true
+                hint.visibility = View.VISIBLE
+            }
+            true
+        }
         setOnKeyListener { v, keyCode, event -> onTileKey(v as TileView, keyCode, event) }
     }
 
@@ -273,19 +283,12 @@ class HomeActivity : Activity() {
             when (keyCode) {
                 KeyEvent.KEYCODE_DPAD_LEFT -> if (index > 0) swap(index, index - 1)
                 KeyEvent.KEYCODE_DPAD_RIGHT -> if (index < row.childCount - 1) swap(index, index + 1)
-                KeyEvent.KEYCODE_MENU -> endMove(save = true)
                 KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> Unit
                 else -> return false
             }
             return true
         }
         return when (keyCode) {
-            KeyEvent.KEYCODE_MENU -> {
-                moving = tile
-                tile.lifted = true
-                hint.visibility = View.VISIBLE
-                true
-            }
             KeyEvent.KEYCODE_DPAD_UP -> {
                 (lastControl ?: controls.first()).requestFocus()
                 true
