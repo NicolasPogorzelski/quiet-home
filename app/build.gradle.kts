@@ -3,6 +3,11 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
+// Release signing reads its key from ~/.gradle/gradle.properties (never from the repository):
+//   quietHome.storeFile, quietHome.storePassword, quietHome.keyAlias, quietHome.keyPassword
+// Without them, as on CI or for other builders, release builds fall back to the debug key.
+val releaseStoreFile: String? = providers.gradleProperty("quietHome.storeFile").orNull
+
 android {
     namespace = "io.github.nicolaspogorzelski.quiethome"
     compileSdk = 35
@@ -15,13 +20,23 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        if (releaseStoreFile != null) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = providers.gradleProperty("quietHome.storePassword").get()
+                keyAlias = providers.gradleProperty("quietHome.keyAlias").get()
+                keyPassword = providers.gradleProperty("quietHome.keyPassword").get()
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
-            // Signed with the debug key until a release key exists; the app is only sideloaded.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
     }
 
