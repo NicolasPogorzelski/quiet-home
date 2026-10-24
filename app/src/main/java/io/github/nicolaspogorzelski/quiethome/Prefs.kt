@@ -5,6 +5,9 @@ import android.content.Context
 /** How apps appear: colourful banners, or CleanFrame's white marks with the app name. */
 enum class IconStyle { CLASSIC, QUIET }
 
+/** The dock's glass: CLASSIC as before, or QUIET, CleanFrame's lighter "Soft" material. */
+enum class DockStyle { CLASSIC, QUIET }
+
 /** All launcher settings, stored locally in one SharedPreferences file. */
 class Prefs(context: Context) {
     private val sp = context.applicationContext.getSharedPreferences("launcher", Context.MODE_PRIVATE)
@@ -34,12 +37,17 @@ class Prefs(context: Context) {
         get() = if (sp.getString(KEY_ICON_STYLE, null) == "quiet") IconStyle.QUIET else IconStyle.CLASSIC
         set(value) = sp.edit().putString(KEY_ICON_STYLE, if (value == IconStyle.QUIET) "quiet" else "classic").apply()
 
+    var dockStyle: DockStyle
+        get() = if (sp.getString(KEY_DOCK_STYLE, null) == "quiet") DockStyle.QUIET else DockStyle.CLASSIC
+        set(value) = sp.edit().putString(KEY_DOCK_STYLE, if (value == DockStyle.QUIET) "quiet" else "classic").apply()
+
     private companion object {
         const val KEY_HOME = "home_apps"
         const val KEY_WALLPAPER = "wallpaper"
         const val KEY_ROTATE = "rotate_wallpaper"
         const val KEY_NETFLIX = "netflix_target"
         const val KEY_ICON_STYLE = "icon_style"
+        const val KEY_DOCK_STYLE = "dock_style"
         const val DEFAULT_NETFLIX_TARGET = "org.moonfin.androidtv"
     }
 }

@@ -91,6 +91,7 @@ class HomeActivity : Activity() {
         // Marks.refresh also notices icons installed with tools/install-icons.sh.
         val marksChanged = Marks.refresh(this)
         if (appsDirty || marksChanged || builtFrom != prefs.homeApps || builtStyle != prefs.iconStyle) reloadApps()
+        applyDockStyle()
         // Settings may have changed the wallpaper while Home was paused.
         applyWallpaper()
     }
@@ -221,11 +222,19 @@ class HomeActivity : Activity() {
     private fun applyWallpaper() {
         Wallpapers.load(this, currentWallpaper(this, prefs)) { loaded ->
             window.setBackgroundDrawable(loaded.background)
-            dock.setPanel(loaded.panel)
+            dock.setPanel(loaded.panel, loaded.softPanel)
             clock.setInk(loaded.inks.clock, dp(14f))
             controls.forEach { it.setRestInk(loaded.inks.controls) }
             focusName.setInk(loaded.inks.name, dp(7f))
             hint.setInk(loaded.inks.name, dp(6f))
+        }
+    }
+
+    private fun applyDockStyle() {
+        dock.material = when {
+            prefs.dockStyle == DockStyle.QUIET -> GlassFrame.Material.SOFT
+            prefs.iconStyle == IconStyle.QUIET -> GlassFrame.Material.DARK
+            else -> GlassFrame.Material.LIGHT
         }
     }
 
@@ -246,7 +255,7 @@ class HomeActivity : Activity() {
         builtFrom = home
         builtStyle = style
         val quiet = style == IconStyle.QUIET
-        dock.dark = quiet
+        applyDockStyle()
         // In the Quiet style each tile carries its name, so the label above the dock is not needed.
         focusName.visibility = if (quiet) View.GONE else View.VISIBLE
         for (pkg in home) {

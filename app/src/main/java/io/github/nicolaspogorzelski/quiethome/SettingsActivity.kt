@@ -35,6 +35,9 @@ class SettingsActivity : Activity() {
         addChoice(rows, "App-Icons", { if (prefs.iconStyle == IconStyle.QUIET) "Quiet" else "Classic" }) {
             prefs.iconStyle = if (prefs.iconStyle == IconStyle.QUIET) IconStyle.CLASSIC else IconStyle.QUIET
         }
+        addChoice(rows, "Menüleiste", { if (prefs.dockStyle == DockStyle.QUIET) "Quiet" else "Classic" }) {
+            prefs.dockStyle = if (prefs.dockStyle == DockStyle.QUIET) DockStyle.CLASSIC else DockStyle.QUIET
+        }
         addChoice(rows, "Hintergrund wechseln", { if (prefs.rotateWallpaper) "Bei jeder Rückkehr" else "Nie" }) {
             prefs.rotateWallpaper = !prefs.rotateWallpaper
         }

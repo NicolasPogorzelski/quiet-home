@@ -51,7 +51,10 @@ fun View.animateTo(scale: Float, alpha: Float, translationY: Float = 0f) {
  */
 class GlassFrame(context: Context) : FrameLayout(context) {
     var radius = context.dp(24f)
-    var dark = false
+    /** LIGHT and DARK tint the heavily blurred panel; SOFT shows CleanFrame's Soft material as is. */
+    enum class Material { LIGHT, DARK, SOFT }
+
+    var material = Material.LIGHT
         set(value) {
             if (field == value) return
             field = value
@@ -68,14 +71,18 @@ class GlassFrame(context: Context) : FrameLayout(context) {
     private val location = IntArray(2)
     private val shaderMatrix = Matrix()
     private var panel: Bitmap? = null
+    private var softPanel: Bitmap? = null
+    private val softBackdrop = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
 
     init {
         setWillNotDraw(false)
     }
 
-    fun setPanel(bitmap: Bitmap) {
+    fun setPanel(bitmap: Bitmap, soft: Bitmap? = null) {
         panel = bitmap
         backdrop.shader = BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+        softPanel = soft
+        softBackdrop.shader = soft?.let { BitmapShader(it, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP) }
         invalidate()
     }
 
@@ -87,27 +94,35 @@ class GlassFrame(context: Context) : FrameLayout(context) {
     private fun updateShaders(w: Int, h: Int) {
         if (w == 0 || h == 0) return
         val h0 = h.toFloat()
-        val stops = if (dark) {
-            intArrayOf(Color.argb(115, 14, 16, 18), Color.argb(92, 14, 16, 18), Color.argb(105, 14, 16, 18))
-        } else {
-            intArrayOf(Color.argb(77, 255, 255, 255), Color.argb(41, 255, 255, 255), Color.argb(56, 255, 255, 255))
+        val stops = when (material) {
+            Material.DARK -> intArrayOf(Color.argb(115, 14, 16, 18), Color.argb(92, 14, 16, 18), Color.argb(105, 14, 16, 18))
+            Material.SOFT -> intArrayOf(Color.TRANSPARENT, Color.TRANSPARENT, Color.TRANSPARENT)
+            Material.LIGHT -> intArrayOf(Color.argb(77, 255, 255, 255), Color.argb(41, 255, 255, 255), Color.argb(56, 255, 255, 255))
         }
         tint.shader = LinearGradient(0f, 0f, w * .18f, h0, stops, floatArrayOf(0f, .58f, 1f), Shader.TileMode.CLAMP)
-        edge.shader = LinearGradient(
-            0f, 0f, 0f, h0 * .35f,
-            Color.argb(if (dark) 46 else 87, 255, 255, 255), Color.TRANSPARENT, Shader.TileMode.CLAMP,
-        )
+        if (material == Material.SOFT) {
+            // No edge: CleanFrame's example shows none, the dock is set off by its darkening alone.
+            edge.shader = null
+            edge.color = Color.TRANSPARENT
+        } else {
+            edge.shader = LinearGradient(
+                0f, 0f, 0f, h0 * .35f,
+                Color.argb(if (material == Material.LIGHT) 87 else 46, 255, 255, 255),
+                Color.TRANSPARENT, Shader.TileMode.CLAMP,
+            )
+        }
     }
 
     override fun onDraw(canvas: Canvas) {
         rect.set(0f, 0f, width.toFloat(), height.toFloat())
-        panel?.let { bitmap ->
+        val (bitmap, paint) = if (material == Material.SOFT && softPanel != null) softPanel to softBackdrop else panel to backdrop
+        bitmap?.let {
             getLocationInWindow(location)
             val root = rootView
-            shaderMatrix.setScale(root.width / bitmap.width.toFloat(), root.height / bitmap.height.toFloat())
+            shaderMatrix.setScale(root.width / it.width.toFloat(), root.height / it.height.toFloat())
             shaderMatrix.postTranslate(-location[0].toFloat(), -location[1].toFloat())
-            backdrop.shader.setLocalMatrix(shaderMatrix)
-            canvas.drawRoundRect(rect, radius, radius, backdrop)
+            paint.shader.setLocalMatrix(shaderMatrix)
+            canvas.drawRoundRect(rect, radius, radius, paint)
         }
         canvas.drawRoundRect(rect, radius, radius, tint)
         rect.inset(edge.strokeWidth / 2, edge.strokeWidth / 2)
@@ -127,7 +142,10 @@ class TileView(
     private val style: IconStyle = IconStyle.CLASSIC,
     showName: Boolean = true,
 ) : FrameLayout(context) {
-    private val plate = GradientDrawable().apply { cornerRadius = context.dp(16f) }
+    private val plate = GradientDrawable().apply {
+        cornerRadius = context.dp(16f)
+        orientation = GradientDrawable.Orientation.TOP_BOTTOM
+    }
     private val restAlpha = if (style == IconStyle.QUIET) QUIET_REST_ALPHA else Style.TILE_REST_ALPHA
     private var restPlate = Color.TRANSPARENT
     var lifted = false
@@ -187,7 +205,9 @@ class TileView(
     }
 
     private fun refresh() {
-        if (style == IconStyle.QUIET) plate.setColor(if (isFocused || lifted) FOCUS_PLATE else restPlate)
+        if (style == IconStyle.QUIET) {
+            if (isFocused || lifted) plate.colors = FOCUS_PLATE else plate.setColor(restPlate)
+        }
         when {
             lifted -> animateTo(1.12f, 1f, -context.dp(8f))
             isFocused -> animateTo(if (style == IconStyle.QUIET) QUIET_FOCUS_SCALE else Style.TILE_FOCUS_SCALE, 1f)
@@ -198,8 +218,8 @@ class TileView(
     private companion object {
         const val QUIET_REST_ALPHA = .8f
         const val QUIET_FOCUS_SCALE = 1.04f
-        // CleanFrame's "lift" plate: white at about a third, frosted over the dark dock.
-        const val FOCUS_PLATE = 0x38FFFFFF
+        // CleanFrame's Frost focus plate: white fading from 26 % to 8 % and back up to 10 %.
+        val FOCUS_PLATE = intArrayOf(0x42FFFFFF, 0x14FFFFFF, 0x1AFFFFFF)
     }
 }
 
