@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Quiet Home</string>
+    <string name="remap_service_label">Quiet Home Tasten</string>
+    <string name="remap_service_description">Legt die Netflix-Taste der Fernbedienung auf eine andere App.</string>
+</resources>
