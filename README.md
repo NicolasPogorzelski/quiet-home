@@ -18,6 +18,9 @@ implementation of its Dock layout, not a port of its code.
   return to Home, and the app the remote's Netflix key starts.
 - **Netflix key remap:** an accessibility service catches the SHIELD remote's Netflix key
   (`BUTTON_12` in `Vendor_0955_Product_7217.kl`) and starts the chosen app instead.
+- **Readable text on any photo:** Quiet Home measures the blurred photo behind the clock, the
+  controls and the app name, and picks light or dark text by WCAG contrast. Where neither reaches
+  4.5:1, the text gets a tight halo in the opposite tone.
 - **Glass without live blur:** when a wallpaper loads, Quiet Home blurs a 160×90 copy of it once;
   that copy backs the glass surfaces, so nothing is blurred while drawing.
 
@@ -148,6 +151,15 @@ adb shell cmd package set-home-activity com.spocky.projengmenu/.ui.home.MainActi
 adb shell settings delete secure enabled_accessibility_services
 adb uninstall io.github.nicolaspogorzelski.quiethome
 ```
+
+## Ideas
+
+Possible later improvements, not planned yet:
+
+- **Heavier clock on busy photos.** The clock uses a light weight. On mid-toned, detailed photos
+  (for example the granite cliffs in *Mountain valley*) its thin strokes stay hard to read even
+  with the halo. A regular weight where the halo is active, or as a setting, would help, at the
+  cost of some of the light look.
 
 ## How this repository is built
 

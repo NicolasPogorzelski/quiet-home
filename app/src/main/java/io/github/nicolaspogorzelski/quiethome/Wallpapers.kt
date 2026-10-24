@@ -27,7 +27,10 @@ object Wallpapers {
     /** Id of the built-in gradient; photo ids are file names. */
     const val GRADIENT = ""
 
-    class Loaded(val id: String, val background: Drawable, val panel: Bitmap)
+    /** Text colours for the areas of Home that sit directly on the wallpaper. */
+    class Inks(val clock: Ink, val controls: Ink, val name: Ink)
+
+    class Loaded(val id: String, val background: Drawable, val panel: Bitmap, val inks: Inks)
 
     private val extensions = setOf("jpg", "jpeg", "png", "webp")
     private const val SCREEN_WIDTH = 1920
@@ -35,6 +38,7 @@ object Wallpapers {
     private const val PANEL_WIDTH = 160
     private const val PANEL_HEIGHT = 90
     private const val PANEL_BLUR_RADIUS = 6
+    private const val MIN_CONTRAST = 4.5
 
     private val loader = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
@@ -77,7 +81,8 @@ object Wallpapers {
         loader.execute {
             val photo = if (id == GRADIENT) null else folder(app)?.let { decode(File(it, id)) }
             val screen = photo ?: gradient()
-            val loaded = Loaded(id, BitmapDrawable(app.resources, screen), blurredPanel(screen))
+            val panel = blurredPanel(screen)
+            val loaded = Loaded(id, BitmapDrawable(app.resources, screen), panel, inks(panel))
             main.post {
                 // A newer request replaced this one while it was decoding.
                 if (pendingId != id) return@post
@@ -155,6 +160,47 @@ object Wallpapers {
         panel.setPixels(pixels, 0, PANEL_WIDTH, 0, 0, PANEL_WIDTH, PANEL_HEIGHT)
         return panel
     }
+
+    /**
+     * Picks light or dark ink per area by WCAG contrast against the blurred panel. A mean colour
+     * hides mixed areas (bright rock beside blue sky), so each ink is judged by the contrast it
+     * keeps on the worst fifth of the area. Areas are in panel pixels (1 px = 6 dp on a
+     * 960x540 dp screen) and cover the clock, the controls top right and the app name.
+     * Below WCAG's 4.5:1 the area is busy or mid-toned, and the ink gets a halo.
+     */
+    private fun inks(panel: Bitmap) = Inks(
+        clock = inkFor(panel, Rect(17, 7, 50, 22)),
+        controls = inkFor(panel, Rect(117, 9, 144, 15)),
+        name = inkFor(panel, Rect(21, 49, 67, 55)),
+    )
+
+    private fun inkFor(panel: Bitmap, area: Rect): Ink {
+        val backgrounds = DoubleArray(area.width() * area.height())
+        var n = 0
+        for (y in area.top until area.bottom) for (x in area.left until area.right) {
+            backgrounds[n++] = luminance(panel.getPixel(x, y))
+        }
+        val light = luminance(Style.INK)
+        val dark = luminance(Style.SOLID_INK)
+        fun worstFifth(ink: Double) = backgrounds.map { contrast(ink, it) }.sorted()[backgrounds.size / 5]
+        val lightContrast = worstFifth(light)
+        val darkContrast = worstFifth(dark)
+        return if (lightContrast >= darkContrast) Ink(Style.INK, halo = lightContrast < MIN_CONTRAST)
+        else Ink(Style.SOLID_INK, halo = darkContrast < MIN_CONTRAST)
+    }
+
+    private fun luminance(color: Int) = luminance(color shr 16 and 0xFF, color shr 8 and 0xFF, color and 0xFF)
+
+    /** WCAG 2 relative luminance. */
+    private fun luminance(r: Int, g: Int, b: Int): Double {
+        fun channel(v: Int): Double {
+            val c = v / 255.0
+            return if (c <= 0.03928) c / 12.92 else Math.pow((c + 0.055) / 1.055, 2.4)
+        }
+        return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+    }
+
+    private fun contrast(a: Double, b: Double) = (maxOf(a, b) + 0.05) / (minOf(a, b) + 0.05)
 
     private fun boxBlur(pixels: IntArray, width: Int, height: Int, horizontal: Boolean) {
         val r = PANEL_BLUR_RADIUS

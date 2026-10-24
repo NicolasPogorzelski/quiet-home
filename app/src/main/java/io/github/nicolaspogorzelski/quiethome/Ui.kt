@@ -135,6 +135,23 @@ class TileView(context: Context, val app: AppEntry) : FrameLayout(context) {
     }
 }
 
+/**
+ * Colour of text that sits directly on the wallpaper. [halo] is set where neither light nor dark
+ * text reaches 4.5:1 against the photo; the text then gets a wide soft shadow in the opposite tone.
+ */
+data class Ink(val color: Int, val halo: Boolean = false)
+
+fun TextView.setInk(ink: Ink, shadowRadius: Float) {
+    setTextColor(ink.color)
+    val light = ink.color == Style.INK
+    when {
+        // A tight, dense glow: a wide blur spreads the thin strokes' shadow until it disappears.
+        ink.halo -> setShadowLayer(context.dp(4f), 0f, 0f, if (light) 0xB3000000.toInt() else 0xB3FFFFFF.toInt())
+        light -> setShadowLayer(shadowRadius, 0f, context.dp(1f), 0x52000000)
+        else -> setShadowLayer(0f, 0f, 0f, 0)
+    }
+}
+
 /** Text control in the CleanFrame style: plain ink at rest, solid plate when focused. */
 fun pill(context: Context, label: String, onClick: () -> Unit): TextView = TextView(context).apply {
     text = label
@@ -152,11 +169,17 @@ fun pill(context: Context, label: String, onClick: () -> Unit): TextView = TextV
         setColor(Color.TRANSPARENT)
     }
     setOnClickListener { onClick() }
+    tag = Ink(Style.INK)
     setOnFocusChangeListener { v, focused ->
         (v.background as GradientDrawable).setColor(if (focused) Style.SOLID else Color.TRANSPARENT)
-        (v as TextView).setTextColor(if (focused) Style.SOLID_INK else Style.INK)
-        v.setShadowLayer(if (focused) 0f else context.dp(6f), 0f, context.dp(1f), 0x52000000)
+        if (focused) (v as TextView).setInk(Ink(Style.SOLID_INK), 0f) else (v as TextView).setInk(v.tag as Ink, context.dp(6f))
     }
+}
+
+/** Changes a pill's resting ink, e.g. to dark on a bright wallpaper. */
+fun TextView.setRestInk(ink: Ink) {
+    tag = ink
+    if (!isFocused) setInk(ink, context.dp(6f))
 }
 
 fun roundedOutline(radius: Float) = object : ViewOutlineProvider() {
