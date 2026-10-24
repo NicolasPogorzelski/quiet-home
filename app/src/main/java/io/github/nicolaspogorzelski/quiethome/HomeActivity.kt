@@ -137,13 +137,27 @@ class HomeActivity : Activity() {
             pill(this, "Einstellungen") { startActivity(Intent(this, SettingsActivity::class.java)) },
         )
         val controlRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        controls.forEach { control ->
+        controls.forEachIndexed { index, control ->
             control.setOnKeyListener { _, keyCode, event ->
-                if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN && event.action == KeyEvent.ACTION_DOWN) {
-                    lastControl = control
-                    (lastTile ?: row.getChildAt(0))?.requestFocus()
-                    true
-                } else false
+                if (event.action != KeyEvent.ACTION_DOWN) return@setOnKeyListener false
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        lastControl = control
+                        (lastTile ?: row.getChildAt(0))?.requestFocus()
+                        true
+                    }
+                    // Nothing above, and no jumping into the dock from either end of the row.
+                    KeyEvent.KEYCODE_DPAD_UP -> true
+                    KeyEvent.KEYCODE_DPAD_LEFT -> index == 0
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> index == controls.lastIndex
+                    else -> false
+                }
+            }
+            control.onFocusChangeListener.let { styling ->
+                control.setOnFocusChangeListener { v, focused ->
+                    styling.onFocusChange(v, focused)
+                    if (focused) focusName.animate().alpha(0f).setDuration(120).start()
+                }
             }
             controlRow.addView(control, LinearLayout.LayoutParams(WRAP_CONTENT, WRAP_CONTENT).apply { leftMargin = dp(8) })
         }
@@ -203,6 +217,10 @@ class HomeActivity : Activity() {
         Wallpapers.load(this, currentWallpaper(this, prefs)) { loaded ->
             window.setBackgroundDrawable(loaded.background)
             dock.setPanel(loaded.panel)
+            clock.setInk(loaded.inks.clock, dp(14f))
+            controls.forEach { it.setRestInk(loaded.inks.controls) }
+            focusName.setInk(loaded.inks.name, dp(7f))
+            hint.setInk(loaded.inks.name, dp(6f))
         }
     }
 
@@ -235,8 +253,6 @@ class HomeActivity : Activity() {
                 lastTile = v as TileView
                 focusName.text = app.label
                 focusName.animate().alpha(1f).setDuration(120).start()
-            } else if (!row.hasFocus()) {
-                focusName.animate().alpha(0f).setDuration(120).start()
             }
         }
         setOnClickListener {
